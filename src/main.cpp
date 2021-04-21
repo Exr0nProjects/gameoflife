@@ -2,9 +2,6 @@
 #include <cstdint>
 #include <cstdlib>
 
-// TODO: naive impl
-// TODO: count on update
-// TODO: spfa
 // TODO: use 4bit representation
 
 using nt = std::int_fast32_t;
@@ -38,7 +35,6 @@ void set_alive(nt y, nt x)
 
 void set_dead(nt y, nt x)
 {
-    printf("    set dead %lu %lu\n", y, x);
     // OPTM: this code is probably quite hot
     grid[y][x] &= ~1;                    // set cell as dead
     for (nt dx=-1; dx<2; ++dx)
@@ -58,21 +54,31 @@ void init_grid()
     }
 }
 
-void step_gen()
+nt birth_sz=0, birth_y[MX*MX], birth_x[MX*MX],
+   death_sz=0, death_y[MX*MX], death_x[MX*MX];
+void calc_gen()
 {
+    // find next generation
     for (nt i=1; i<=MX; ++i) {
         for (nt j=1; j<=MX; ++j) {
             if (grid[i][j]&1) {         // currently alive
-                printf("%lu %lu alive %d\n", i, j, grid[i][j]>>1);
+                //printf("%lu %lu alive %d\n", i, j, grid[i][j]>>1);
                 if (grid[i][j]>>1 != 2 && grid[i][j]>>1 != 3)
-                    set_dead(i, j);
+                    ++death_sz, death_y[death_sz] = i, death_x[death_sz] = j;
             } else {                    // currently dead
-                printf("%lu %lu dead  %d\n", i, j, grid[i][j]>>1);
+                //printf("%lu %lu dead  %d\n", i, j, grid[i][j]>>1);
                 if (grid[i][j]>>1 == 3) // should become alive
-                    set_alive(i, j);
+                    ++birth_sz, birth_y[birth_sz] = i, birth_x[birth_sz] = j;
             }
         }
     }
+}
+
+void step_gen()
+{
+    // step next generation
+    while (birth_sz) set_alive(birth_y[birth_sz], birth_x[birth_sz]), --birth_sz;
+    while (death_sz) set_dead (death_y[death_sz], death_x[death_sz]), --death_sz;
 }
 
 int main()
@@ -81,6 +87,11 @@ int main()
     init_grid();
     render_grid();
     while (true) {
+        calc_gen();
+        if (!birth_sz && !death_sz) {
+            printf("Equilibrium Reached\n");
+            return 0;
+        }
         step_gen();
         render_grid();
         getchar_unlocked();
