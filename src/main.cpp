@@ -5,7 +5,7 @@
 // TODO: use 4bit representation
 
 using nt = std::int_fast32_t;
-const size_t MX = 4;
+const size_t MX = 256;
 
 std::uint_fast8_t grid[MX+2][MX+2];
 
@@ -15,8 +15,6 @@ void render_grid()
     for (nt i=1; i<=MX; ++i) {
         for (nt j=1; j<=MX; ++j)
             putchar_unlocked(' '),
-            //putchar_unlocked(grid[i][j]/2 + '0'),
-            printf("%d", grid[i][j]/2),
             putchar_unlocked(output_lookup[grid[i][j]&1]);
         putchar_unlocked('\n');
     }
@@ -62,11 +60,9 @@ void calc_gen()
     for (nt i=1; i<=MX; ++i) {
         for (nt j=1; j<=MX; ++j) {
             if (grid[i][j]&1) {         // currently alive
-                //printf("%lu %lu alive %d\n", i, j, grid[i][j]>>1);
                 if (grid[i][j]>>1 != 2 && grid[i][j]>>1 != 3)
                     ++death_sz, death_y[death_sz] = i, death_x[death_sz] = j;
             } else {                    // currently dead
-                //printf("%lu %lu dead  %d\n", i, j, grid[i][j]>>1);
                 if (grid[i][j]>>1 == 3) // should become alive
                     ++birth_sz, birth_y[birth_sz] = i, birth_x[birth_sz] = j;
             }
@@ -83,10 +79,11 @@ void step_gen()
 
 int main()
 {
-    puts("hello world");
     init_grid();
     render_grid();
     while (true) {
+        getchar_unlocked();
+
         calc_gen();
         if (!birth_sz && !death_sz) {
             printf("Equilibrium Reached\n");
@@ -94,7 +91,6 @@ int main()
         }
         step_gen();
         render_grid();
-        getchar_unlocked();
     }
 }
 
